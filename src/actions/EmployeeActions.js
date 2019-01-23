@@ -1,7 +1,11 @@
-import firebase from '@firebase/database';
+import firebase from '@firebase/app';
 import '@firebase/auth';
+import '@firebase/database';
+import { Actions } from 'react-native-router-flux';
 import {
-  EMPLOYEE_UPDATE
+  EMPLOYEE_UPDATE,
+  EMPLOYEE_CREATE,
+  EMPLOYEES_FETCH_SUCCESS
 } from './types';
 
 export const employeeUpdate = ({ prop, value }) => {
@@ -14,6 +18,23 @@ export const employeeUpdate = ({ prop, value }) => {
 export const employeeCreate = ({ name, phone, shift }) => {
   const { currentUser } = firebase.auth();
 
-  firebase.database().ref(`users/${currentUser.uid}/employees`)
-    .push({ name, phone, shift });
+  return (dispatch) => { // you need to pass dispatch to use redux-thunk middleware
+      firebase.database().ref(`/users/${currentUser.uid}/employees`)
+      .push({ name, phone, shift })
+      .then(() => {
+        dispatch({ type: EMPLOYEE_CREATE });
+        Actions.popTo('employeeList');
+      });
+  };
+};
+
+export const employeesFetch = () => {
+  const { currentUser } = firebase.auth();
+
+  return (dispatch) => {
+    firebase.database().ref(`/users/${currentUser.uid}/employees`)
+      .on('value', snapshot => {
+        dispatch({ type: EMPLOYEES_FETCH_SUCCESS, payload: snapshot.val() });
+      });
+  };
 };
