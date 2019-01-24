@@ -15,6 +15,7 @@ class EmployeeList extends Component {
       <FlatList
         data={this.props.employees}
         renderItem={({ item }) => <ListItem employee={item} />}
+        keyExtractor={(item, index) => index.toString()}
       />
     );
   }
